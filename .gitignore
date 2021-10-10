@@ -7,6 +7,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# graphql-codegen generated files
+src/graphql/types.ts
+
 # Runtime data
 pids
 *.pid

@@ -1,0 +1,19 @@
+{
+  "name": "every-io-task-manager",
+  "version": "0.1.0",
+  "description": "A simple task manager",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Andres Garcia",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^4.4.3"
+  },
+  "dependencies": {
+    "@graphql-tools/schema": "^8.2.0",
+    "apollo-server": "^3.3.0",
+    "graphql": "^15.6.1"
+  }
+}

@@ -1,0 +1,29 @@
+extend type Query {
+  taskAll: [Task!]!
+  taskOne(taskId: ID!): Task!
+}
+
+extend type Mutation {
+  taskCreate(input: TaskCreateInput!): Task!
+}
+
+type Task {
+  id: ID!
+  createdAt: Date!
+  lastUpdatedAt: Date
+  title: String!
+  description: String!
+  status: TaskStatus!
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  ARCHIVED
+}
+
+input TaskCreateInput {
+  title: String!
+  description: String!
+}

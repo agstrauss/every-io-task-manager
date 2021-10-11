@@ -1,3 +1,5 @@
-import {startServer} from "./server";
+import { startServer } from "./server";
 
-startServer().catch((e) => console.error(`Error starting server: ${e.message}`));
+startServer().catch((e) =>
+  console.error(`Error starting server: ${e.message}`),
+);

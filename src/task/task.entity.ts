@@ -5,7 +5,9 @@ import {
   BaseEntity,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
 } from "typeorm";
+import { User } from "../auth/user.entity";
 
 export enum TaskStatus {
   TODO = "TODO",
@@ -36,4 +38,7 @@ export class Task extends BaseEntity {
     enum: TaskStatus,
   })
   status: TaskStatus;
+
+  @ManyToOne(() => User, (user) => user.tasks)
+  user: User;
 }

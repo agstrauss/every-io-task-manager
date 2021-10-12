@@ -1,17 +1,15 @@
 import { ApolloError, ApolloServer } from "apollo-server";
 import { GraphQLError } from "graphql";
+import { Connection } from "typeorm";
 import { ApiError } from "./common/errors";
-import { createDBConnection } from "./db/connection";
 import { schema } from "./graphql";
 import { createRequestContext } from "./request-context";
 
-export const startServer = async () => {
-  const dbConnection = await createDBConnection();
-
+export const startServer = async (dbConnection: Connection) => {
   const apolloServer = new ApolloServer({
     schema,
     formatError,
-    context: () => createRequestContext(dbConnection),
+    context: ({ req }) => createRequestContext(req, dbConnection),
   });
 
   const { url, server: httpServer } = await apolloServer.listen();

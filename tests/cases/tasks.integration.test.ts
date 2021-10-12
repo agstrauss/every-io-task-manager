@@ -1,60 +1,84 @@
-import { ApolloServer } from "apollo-server";
-import { Server } from "http";
-import { default as request } from "supertest";
 import { expect } from "chai";
 import MockDate from "mockdate";
-import { Connection } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
-import { startServer } from "../../src/server";
 import { Task, TaskStatus } from "../../src/task/task.entity";
+import { createTestSandbox, TestSandbox } from "../utils/server";
 
 describe("Task GraphQL queries and mutations", () => {
-  let apolloServer: ApolloServer;
-  let httpServer: Server;
-  let dbConnection: Connection;
+  let sandbox: TestSandbox;
 
   before(async () => {
-    ({ apolloServer, httpServer, dbConnection } = await startServer());
+    sandbox = await createTestSandbox();
   });
 
   after(async () => {
-    await apolloServer.stop();
+    await sandbox.exit();
   });
 
   afterEach(() => {
     MockDate.reset();
   });
 
-  describe("tasksCreate", () => {
-    it("should create a task and return it", async () => {
-      const title = "Test";
-      const description = "A Test Task";
-
+  describe("taskCreate", () => {
+    it("should create a task assigned to the user and return it", async () => {
       const now = new Date();
       MockDate.set(now);
 
-      const result = await request(httpServer)
-        .post("/graphql")
-        .send({
-          query: `mutation TaskCreate($input: TaskCreateInput!) { taskCreate(input: $input) { title, description, createdAt, status } }`,
+      const result = await sandbox.request(
+        `mutation TaskCreate($input: TaskCreateInput!) { taskCreate(input: $input) { id, title, description, createdAt, status } }`,
+        {
+          token: sandbox.users.regular.token,
           variables: {
             input: {
-              title,
-              description,
+              title: "Test",
+              description: "A Test Task",
             },
           },
-        });
+        },
+      );
 
       expect(result.statusCode).to.equal(200, JSON.stringify(result.body));
       expect(result.body.errors).to.be.undefined;
-      expect(result.body.data).to.eql({
-        taskCreate: {
-          title,
-          description,
+      expect(result.body.data.taskCreate)
+        .to.include({
+          title: "Test",
+          description: "A Test Task",
           createdAt: now.toISOString(),
           status: "TODO",
+        })
+        .and.to.have.property("id")
+        .that.is.a("string");
+
+      const { id } = result.body.data.taskCreate;
+
+      const dbTask = await sandbox.dbConnection
+        .getRepository(Task)
+        .findOne({ relations: ["user"], where: { id } });
+      expect(dbTask?.user.id).to.equal(sandbox.users.regular.id);
+    });
+
+    it("should return an error for unauthenticated users", async () => {
+      const result = await sandbox.request(
+        `mutation TaskCreate($input: TaskCreateInput!) { taskCreate(input: $input) { id, title, description, createdAt, status } }`,
+        {
+          variables: {
+            input: {
+              title: "Test",
+              description: "A Test Task",
+            },
+          },
         },
-      });
+      );
+
+      expect(result.statusCode).to.equal(200, JSON.stringify(result.body));
+      expect(result.body.errors).to.eql([
+        {
+          message: "Unauthorized",
+          extensions: {
+            code: "UnauthorizedError",
+          },
+        },
+      ]);
     });
   });
 
@@ -66,15 +90,17 @@ describe("Task GraphQL queries and mutations", () => {
         description: "A Test Task",
         createdAt: new Date(),
         status: TaskStatus.TODO,
+        user: sandbox.users.regular,
       };
-      await dbConnection.getRepository(Task).insert(data);
+      await sandbox.dbConnection.getRepository(Task).insert(data);
 
-      const result = await request(httpServer)
-        .post("/graphql")
-        .send({
-          query: `query TaskOne($id: ID!) { taskOne(taskId: $id) { id, title, description, createdAt } }`,
+      const result = await sandbox.request(
+        `query TaskOne($id: ID!) { taskOne(taskId: $id) { id, title, description, createdAt } }`,
+        {
+          token: sandbox.users.regular.token,
           variables: { id: data.id },
-        });
+        },
+      );
 
       expect(result.statusCode).to.equal(200, JSON.stringify(result.body));
       expect(result.body.errors).to.be.undefined;
@@ -91,12 +117,13 @@ describe("Task GraphQL queries and mutations", () => {
     it("should return a RecordNotFound error if no task exists with the given id", async () => {
       const invalidId = uuidv4();
 
-      const result = await request(httpServer)
-        .post("/graphql")
-        .send({
-          query: `query TaskOne($id: ID!) { taskOne(taskId: $id) { id, title, description, createdAt } }`,
+      const result = await sandbox.request(
+        `query TaskOne($id: ID!) { taskOne(taskId: $id) { id, title, description, createdAt } }`,
+        {
+          token: sandbox.users.regular.token,
           variables: { id: invalidId },
-        });
+        },
+      );
 
       expect(result.statusCode).to.equal(200, JSON.stringify(result.body));
       expect(result.body.errors).to.eql([
@@ -107,6 +134,38 @@ describe("Task GraphQL queries and mutations", () => {
             id: invalidId,
           },
           message: `Task with id ${invalidId} not found`,
+        },
+      ]);
+    });
+
+    it("should return a RecordNotFound error if the task does not belong to the user", async () => {
+      const data = {
+        id: uuidv4(),
+        title: "Test",
+        description: "A Test Task",
+        createdAt: new Date(),
+        status: TaskStatus.TODO,
+        user: sandbox.users.admin,
+      };
+      await sandbox.dbConnection.getRepository(Task).insert(data);
+
+      const result = await sandbox.request(
+        `query TaskOne($id: ID!) { taskOne(taskId: $id) { id, title, description, createdAt } }`,
+        {
+          token: sandbox.users.regular.token,
+          variables: { id: data.id },
+        },
+      );
+
+      expect(result.statusCode).to.equal(200, JSON.stringify(result.body));
+      expect(result.body.errors).to.eql([
+        {
+          extensions: {
+            code: "RecordNotFoundError",
+            entityName: "Task",
+            id: data.id,
+          },
+          message: `Task with id ${data.id} not found`,
         },
       ]);
     });

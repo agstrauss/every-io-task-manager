@@ -1,0 +1,25 @@
+extend type Query {
+  login(username: String!, password: String!): LoginResponse!
+  me: User!
+}
+
+extend type Mutation {
+  userCreate(input: UserCreateInput!): User
+}
+
+type User {
+  id: ID!
+  username: String!
+  createdAt: Date!
+  isAdmin: Boolean!
+}
+
+type LoginResponse {
+  token: String!
+}
+
+input UserCreateInput {
+  username: String!
+  password: String!
+  isAdmin: Boolean!
+}

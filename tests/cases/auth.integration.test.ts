@@ -83,6 +83,37 @@ describe("Auth GraphQL queries and mutations", () => {
     });
   });
 
+  describe("me", () => {
+    it("should return the authorized user", async () => {
+      const result = await sandbox.request(`query Me { me { id, username } }`, {
+        token: sandbox.users.regular.token,
+      });
+
+      expect(result.statusCode).to.equal(200, JSON.stringify(result.body));
+      expect(result.body.errors).to.be.undefined;
+      expect(result.body.data).to.eql({
+        me: {
+          id: sandbox.users.regular.id,
+          username: sandbox.users.regular.username,
+        },
+      });
+    });
+
+    it("should return an error for unauthorized users", async () => {
+      const result = await sandbox.request(`query Me { me { id, username } }`);
+
+      expect(result.statusCode).to.equal(200, JSON.stringify(result.body));
+      expect(result.body.errors).to.eql([
+        {
+          message: "Unauthorized",
+          extensions: {
+            code: "UnauthorizedError",
+          },
+        },
+      ]);
+    });
+  });
+
   describe("userCreate", () => {
     it("should create a user and return it if the user is an admin", async () => {
       const newUsername = "new-user";
@@ -113,6 +144,31 @@ describe("Auth GraphQL queries and mutations", () => {
           isAdmin: false,
         },
       });
+    });
+
+    it("should return an error for unauthorized users", async () => {
+      const result = await sandbox.request(
+        `mutation UserCreate($input: UserCreateInput!) { userCreate(input: $input) { username, isAdmin, createdAt } }`,
+        {
+          variables: {
+            input: {
+              username: "new-username",
+              password: "password",
+              isAdmin: false,
+            },
+          },
+        },
+      );
+
+      expect(result.statusCode).to.equal(200, JSON.stringify(result.body));
+      expect(result.body.errors).to.eql([
+        {
+          message: "Unauthorized",
+          extensions: {
+            code: "UnauthorizedError",
+          },
+        },
+      ]);
     });
 
     it("should return an error for non-admin users", async () => {

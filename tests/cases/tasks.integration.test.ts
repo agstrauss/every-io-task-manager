@@ -174,14 +174,14 @@ describe("Task GraphQL queries and mutations", () => {
 
       expect(result.statusCode).to.equal(200, JSON.stringify(result.body));
       expect(result.body.errors).to.be.undefined;
-      expect(result.body.data).to.eql({
-        taskAll: adminTasks.map((task) => ({
+      expect(result.body.data.taskAll).to.have.deep.members(
+        adminTasks.map((task) => ({
           id: task.id,
           title: task.title,
           description: task.description,
           createdAt: task.createdAt.toISOString(),
         })),
-      });
+      );
     });
 
     it("should return an error for unauthorized users", async () => {

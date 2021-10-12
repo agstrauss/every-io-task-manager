@@ -28,14 +28,14 @@ export const createTestSandbox = async () => {
   const { identifiers } = await userRepository.insert([
     {
       id: uuidv4(),
-      username: "user",
+      username: "test-user",
       password: await hashPassword(password),
       createdAt: new Date(),
       isAdmin: false,
     },
     {
       id: uuidv4(),
-      username: "admin",
+      username: "test-admin",
       password: await hashPassword(password),
       createdAt: new Date(),
       isAdmin: true,

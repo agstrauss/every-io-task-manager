@@ -6,7 +6,8 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "graphql:generate": "graphql-codegen",
-    "test:integration": "nyc mocha --require ts-node/register 'tests/**/*.integration.test.ts'",
+    "test:integration": "mocha --require ts-node/register 'tests/**/*.integration.test.ts'",
+    "test:integration:coverage": "nyc mocha --require ts-node/register 'tests/**/*.integration.test.ts'",
     "prettier:write": "prettier --write './**/*.(js|ts|json|graphql)'",
     "prettier:check": "prettier --check './**/*.(js|ts|json|graphql)'",
     "create-admin": "node scripts/create-admin-user.js"

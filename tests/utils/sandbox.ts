@@ -1,4 +1,5 @@
 import { default as request } from "supertest";
+import { Connection } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
 import { User } from "../../src/auth/user.entity";
 import config from "../../src/config";
@@ -9,11 +10,18 @@ import { AsyncReturnType } from "../../src/utils/types";
 
 export type TestSandbox = AsyncReturnType<typeof createTestSandbox>;
 
+let dbConnection: Connection;
+
 export const createTestSandbox = async () => {
+  if (dbConnection) {
+    await dbConnection.synchronize(true);
+  } else {
+    dbConnection = await createDBConnection({ resetDB: true });
+  }
+
   const password = "password";
 
   // TODO: given the scope of this POC, we're resetting the db to run the tests
-  const dbConnection = await createDBConnection({ resetDB: true });
   const { apolloServer, httpServer } = await startServer(dbConnection);
 
   const userRepository = dbConnection.getRepository(User);

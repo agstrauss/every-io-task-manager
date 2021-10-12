@@ -2,7 +2,7 @@ import { expect } from "chai";
 import MockDate from "mockdate";
 import { v4 as uuidv4 } from "uuid";
 import { Task, TaskStatus } from "../../src/task/task.entity";
-import { createTestSandbox, TestSandbox } from "../utils/server";
+import { createTestSandbox, TestSandbox } from "../utils/sandbox";
 
 describe("Task GraphQL queries and mutations", () => {
   let sandbox: TestSandbox;

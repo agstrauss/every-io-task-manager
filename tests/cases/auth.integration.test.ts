@@ -1,7 +1,7 @@
 import MockDate from "mockdate";
 import { expect } from "chai";
 import { v4 as uuidv4 } from "uuid";
-import { createTestSandbox, TestSandbox } from "../utils/server";
+import { createTestSandbox, TestSandbox } from "../utils/sandbox";
 
 describe("Auth GraphQL queries and mutations", () => {
   let sandbox: TestSandbox;

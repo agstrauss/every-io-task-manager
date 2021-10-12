@@ -13,6 +13,7 @@ export type TestSandbox = AsyncReturnType<typeof createTestSandbox>;
 let dbConnection: Connection;
 
 export const createTestSandbox = async () => {
+  // TODO: Given the scope of this POC, we're resetting the db to run the tests
   if (dbConnection) {
     await dbConnection.synchronize(true);
   } else {
@@ -21,7 +22,6 @@ export const createTestSandbox = async () => {
 
   const password = "password";
 
-  // TODO: given the scope of this POC, we're resetting the db to run the tests
   const { apolloServer, httpServer } = await startServer(dbConnection);
 
   const userRepository = dbConnection.getRepository(User);

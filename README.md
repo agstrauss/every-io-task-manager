@@ -2,7 +2,7 @@
 
 ### Setup and run
 
-The server contains a `docker-compose` configuration. It was tested with the following versions:
+The server contains a `docker-compose` configuration. It was tested in Ubuntu with the following versions:
 ```
 docker: 20.10.9
 docker-compose: 1.29.2
@@ -23,4 +23,8 @@ docker exec every-io-task-manager_server_1 npm run test:integration:coverage
 
 ### Running queries and mutations
 
+To create a user to be able to login, run
+```shell
+docker exec every-io-task-manager_server_1 npm run create-admin
+```
 To manually run queries or mutations, just head to `localhost:4000/graphql` and use [Apollo Studio](https://www.apollographql.com/docs/studio/)

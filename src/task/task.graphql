@@ -5,6 +5,7 @@ extend type Query {
 
 extend type Mutation {
   taskCreate(input: TaskCreateInput!): Task!
+  taskUpdateStatus(taskId: ID!, taskStatus: TaskStatus!): Task!
 }
 
 type Task {

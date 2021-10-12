@@ -9,12 +9,14 @@ import {
 } from "typeorm";
 import { User } from "../auth/user.entity";
 
-export enum TaskStatus {
-  TODO = "TODO",
-  IN_PROGRESS = "IN_PROGRESS",
-  DONE = "DONE",
-  ARCHIVED = "ARCHIVED",
-}
+export const TASK_STATUSES = {
+  TODO: "TODO",
+  IN_PROGRESS: "IN_PROGRESS",
+  DONE: "DONE",
+  ARCHIVED: "ARCHIVED",
+} as const;
+
+export type TaskStatus = typeof TASK_STATUSES[keyof typeof TASK_STATUSES];
 
 @Entity()
 export class Task extends BaseEntity {
@@ -35,7 +37,7 @@ export class Task extends BaseEntity {
 
   @Column({
     type: "enum",
-    enum: TaskStatus,
+    enum: Object.values(TASK_STATUSES),
   })
   status: TaskStatus;
 

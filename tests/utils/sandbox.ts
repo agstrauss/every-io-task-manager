@@ -62,7 +62,9 @@ export const createTestSandbox = async () => {
   };
 
   const exit = async () => {
+    console.log("Shutting down server...");
     await apolloServer.stop();
+    console.log("done");
   };
 
   const graphQLRequest = (

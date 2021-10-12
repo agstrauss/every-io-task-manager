@@ -8,8 +8,8 @@
     "build": "rm -rf dist && copyfiles -u 1 'src/**/*.graphql' dist/ && tsc -p tsconfig.json",
     "launch": "npm run build && cd dist && node index.js",
     "graphql:generate": "graphql-codegen",
-    "test:integration": "mocha --require ts-node/register 'tests/**/*.integration.test.ts'",
-    "test:integration:coverage": "nyc mocha --require ts-node/register 'tests/**/*.integration.test.ts'",
+    "test:integration": "mocha 'tests/**/*.integration.test.ts'",
+    "test:integration:coverage": "nyc mocha 'tests/**/*.integration.test.ts'",
     "prettier:write": "prettier --write './**/*.(js|ts|json|graphql)'",
     "prettier:check": "prettier --check './**/*.(js|ts|json|graphql)'",
     "create-admin": "node scripts/create-admin-user.js"

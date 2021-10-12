@@ -197,4 +197,20 @@ describe("Auth GraphQL queries and mutations", () => {
       ]);
     });
   });
+
+  it("should return an error for an invalid token", async () => {
+    const result = await sandbox.request(`query Me { me { id, username } }`, {
+      token: "invalid",
+    });
+
+    expect(result.statusCode).to.equal(200, JSON.stringify(result.body));
+    expect(result.body.errors).to.eql([
+      {
+        message: "Unauthorized",
+        extensions: {
+          code: "UnauthorizedError",
+        },
+      },
+    ]);
+  });
 });

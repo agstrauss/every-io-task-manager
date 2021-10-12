@@ -18,7 +18,12 @@ export const getUserFromToken = async (
   getUserById: (userId: string) => Promise<User | undefined>,
   appSecret: string,
 ) => {
-  const verifiedToken = verify(token, appSecret) as JwtPayload;
+  let verifiedToken: JwtPayload;
+  try {
+    verifiedToken = verify(token, appSecret) as JwtPayload;
+  } catch (e) {
+    return undefined;
+  }
   const userId = String(verifiedToken.userId);
   return verifiedToken && userId ? await getUserById(userId) : undefined;
 };

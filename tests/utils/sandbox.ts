@@ -22,7 +22,7 @@ export const createTestSandbox = async () => {
 
   const password = "password";
 
-  const { apolloServer, httpServer } = await startServer(dbConnection);
+  const { apolloServer, httpServer } = await startServer(dbConnection, 4009);
 
   const userRepository = dbConnection.getRepository(User);
   const { identifiers } = await userRepository.insert([

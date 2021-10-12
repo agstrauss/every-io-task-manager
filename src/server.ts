@@ -5,14 +5,14 @@ import { ApiError } from "./common/errors";
 import { schema } from "./graphql";
 import { createRequestContext } from "./request-context";
 
-export const startServer = async (dbConnection: Connection) => {
+export const startServer = async (dbConnection: Connection, port: number) => {
   const apolloServer = new ApolloServer({
     schema,
     formatError,
     context: ({ req }) => createRequestContext(req, dbConnection),
   });
 
-  const { url, server: httpServer } = await apolloServer.listen();
+  const { url, server: httpServer } = await apolloServer.listen({ port });
   console.log(`Server listening in ${url}`);
 
   return { apolloServer, httpServer, dbConnection };

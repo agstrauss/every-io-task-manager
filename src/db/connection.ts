@@ -11,7 +11,7 @@ export const createDBConnection = async ({
     username: config.DB_USERNAME,
     password: config.DB_PASSWORD,
     database: config.DB_NAME,
-    entities: ["**/*.entity.ts"],
+    entities: ["**/*.entity.ts", "**/*.entity.js"],
   });
   await connection.synchronize(resetDB);
   return connection;

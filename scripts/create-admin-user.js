@@ -1,3 +1,4 @@
+require("dotenv").config();
 require("ts-node").register();
 
 const { v4: uuidv4 } = require("uuid");

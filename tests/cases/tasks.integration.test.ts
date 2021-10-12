@@ -84,21 +84,13 @@ describe("Task GraphQL queries and mutations", () => {
 
   describe("taskOne", () => {
     it("should return a task by id", async () => {
-      const data = {
-        id: uuidv4(),
-        title: "Test",
-        description: "A Test Task",
-        createdAt: new Date(),
-        status: TaskStatus.TODO,
-        user: sandbox.users.regular,
-      };
-      await sandbox.dbConnection.getRepository(Task).insert(data);
+      const task = await createTestTask(sandbox, sandbox.users.regular.id);
 
       const result = await sandbox.request(
         `query TaskOne($id: ID!) { taskOne(taskId: $id) { id, title, description, createdAt } }`,
         {
           token: sandbox.users.regular.token,
-          variables: { id: data.id },
+          variables: { id: task.id },
         },
       );
 
@@ -106,10 +98,10 @@ describe("Task GraphQL queries and mutations", () => {
       expect(result.body.errors).to.be.undefined;
       expect(result.body.data).to.eql({
         taskOne: {
-          id: data.id,
-          title: data.title,
-          description: data.description,
-          createdAt: data.createdAt.toISOString(),
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          createdAt: task.createdAt.toISOString(),
         },
       });
     });
@@ -139,21 +131,13 @@ describe("Task GraphQL queries and mutations", () => {
     });
 
     it("should return a RecordNotFound error if the task does not belong to the user", async () => {
-      const data = {
-        id: uuidv4(),
-        title: "Test",
-        description: "A Test Task",
-        createdAt: new Date(),
-        status: TaskStatus.TODO,
-        user: sandbox.users.admin,
-      };
-      await sandbox.dbConnection.getRepository(Task).insert(data);
+      const task = await createTestTask(sandbox, sandbox.users.admin.id);
 
       const result = await sandbox.request(
         `query TaskOne($id: ID!) { taskOne(taskId: $id) { id, title, description, createdAt } }`,
         {
           token: sandbox.users.regular.token,
-          variables: { id: data.id },
+          variables: { id: task.id },
         },
       );
 
@@ -163,11 +147,80 @@ describe("Task GraphQL queries and mutations", () => {
           extensions: {
             code: "RecordNotFoundError",
             entityName: "Task",
-            id: data.id,
+            id: task.id,
           },
-          message: `Task with id ${data.id} not found`,
+          message: `Task with id ${task.id} not found`,
+        },
+      ]);
+    });
+  });
+
+  describe("taskAll", () => {
+    it("should return all tasks for the user", async () => {
+      await sandbox.dbConnection
+        .getRepository(Task)
+        .delete({ user: { id: sandbox.users.admin.id } });
+      const adminTasks = await Promise.all(
+        new Array(3)
+          .fill(null)
+          .map((_, i) =>
+            createTestTask(sandbox, sandbox.users.admin.id, {
+              title: `Test ${i}`,
+            }),
+          ),
+      );
+      await createTestTask(sandbox, sandbox.users.regular.id);
+
+      const result = await sandbox.request(
+        `query TaskAll { taskAll { id, title, description, createdAt } }`,
+        {
+          token: sandbox.users.admin.token,
+        },
+      );
+
+      expect(result.statusCode).to.equal(200, JSON.stringify(result.body));
+      expect(result.body.errors).to.be.undefined;
+      expect(result.body.data).to.eql({
+        taskAll: adminTasks.map((task) => ({
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          createdAt: task.createdAt.toISOString(),
+        })),
+      });
+    });
+
+    it("should return an error for unauthorized users", async () => {
+      const result = await sandbox.request(
+        `query TaskAll { taskAll { id, title, description, createdAt } }`,
+      );
+
+      expect(result.statusCode).to.equal(200, JSON.stringify(result.body));
+      expect(result.body.errors).to.eql([
+        {
+          message: "Unauthorized",
+          extensions: {
+            code: "UnauthorizedError",
+          },
         },
       ]);
     });
   });
 });
+
+const createTestTask = async (
+  sandbox: TestSandbox,
+  userId: string,
+  { title = "Test" } = {},
+) => {
+  const data = {
+    id: uuidv4(),
+    description: "A Test Task",
+    createdAt: new Date(),
+    status: TaskStatus.TODO,
+    user: { id: userId },
+    title,
+  };
+  await sandbox.dbConnection.getRepository(Task).insert(data);
+  return data;
+};

@@ -11,7 +11,14 @@ To run it:
 ```shell
 docker-compose -f docker-compose.prod up
 ```
-This starts the server in port `4000`.
+This starts the server in port `4000` and the db in `5433`, so make sure the ports are available
+(to change them, modify the docker-compose files).
+---
+If the image building fails when running `docker-compose up`, try building the server container first with
+```shell
+docker build . -f Dockerfile-prod
+```
+---
 
 > :warning: **Given the scope of this POC, the DB is not persisted between docker container restarts. Also, running the tests clears the DB**
 

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "ts-node src/index.ts",
-    "build": "rm -rf dist && copyfiles -u 1 'src/**/*.graphql' dist/ && tsc -p tsconfig.json",
+    "build": "npm run graphql:generate && rm -rf dist && copyfiles -u 1 'src/**/*.graphql' dist/ && tsc -p tsconfig.json",
     "launch": "npm run build && cd dist && node index.js",
     "graphql:generate": "graphql-codegen",
     "test:integration": "mocha 'tests/**/*.integration.test.ts'",

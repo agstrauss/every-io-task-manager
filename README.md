@@ -9,7 +9,7 @@ docker-compose: 1.29.2
 ```
 To run it:
 ```shell
-docker-compose -f docker-compose.prod up
+docker-compose -f docker-compose.prod.yml up
 ```
 This starts the server in port `4000` and the db in `5433`, so make sure the ports are available
 (to change them, modify the docker-compose files).
@@ -36,7 +36,7 @@ To manually run queries or mutations, just head to `localhost:4000/graphql` and 
 
 To run the test in a test container:
 ```shell
-docker-compose -f docker-compose.test up
+docker-compose -f docker-compose.test.yml up
 ```
 
 ### Running npm scripts manually

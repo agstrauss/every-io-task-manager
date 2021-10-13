@@ -28,6 +28,8 @@ To create a user to be able to login, run
 ```shell
 docker exec every-io-task-manager_server_1 npm run create-admin
 ```
+(If the container is not named `every-io-task-manager_server_1`, run `docker ps` to get the name)
+
 To manually run queries or mutations, just head to `localhost:4000/graphql` and use [Apollo Studio](https://www.apollographql.com/docs/studio/)
 
 ### Running the tests

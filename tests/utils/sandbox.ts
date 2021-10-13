@@ -17,7 +17,7 @@ export const createTestSandbox = async () => {
   if (dbConnection) {
     await dbConnection.synchronize(true);
   } else {
-    dbConnection = await createDBConnection({ resetDB: true });
+    dbConnection = await createDBConnection({ resetDB: true, name: "test" });
   }
 
   const password = "password";
@@ -64,6 +64,7 @@ export const createTestSandbox = async () => {
   const exit = async () => {
     console.log("Shutting down server...");
     await apolloServer.stop();
+    await dbConnection.close();
     console.log("done");
   };
 

@@ -7,7 +7,9 @@ services:
       POSTGRES_USER: 'postgres'
       POSTGRES_PASSWORD: 'admin1234'
   server:
-    build: .
+    build:
+      context: .
+      dockerfile: 'Dockerfile-prod'
     depends_on:
       - 'db'
     ports:

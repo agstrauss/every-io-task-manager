@@ -2,17 +2,18 @@ import { expect } from "chai";
 import MockDate from "mockdate";
 import { v4 as uuidv4 } from "uuid";
 import { Task, TASK_STATUSES, TaskStatus } from "../../src/task/task.entity";
-import { createTestSandbox, TestSandbox } from "../utils/sandbox";
+import { getTestSandbox, TestSandbox } from "../utils/sandbox";
 
 describe("Task GraphQL queries and mutations", () => {
   let sandbox: TestSandbox;
 
-  before(async () => {
-    sandbox = await createTestSandbox();
+  before(() => {
+    sandbox = getTestSandbox();
   });
 
-  after(async () => {
-    await sandbox.exit();
+  beforeEach(async function () {
+    this.timeout(5000);
+    await sandbox.resetDB();
   });
 
   afterEach(() => {
@@ -157,7 +158,6 @@ describe("Task GraphQL queries and mutations", () => {
 
   describe("taskAll", () => {
     it("should return all tasks for the user", async () => {
-      await clearTasks(sandbox, sandbox.users.admin.id);
       const adminTasks = await createManyTasks(
         sandbox,
         sandbox.users.admin.id,
@@ -391,6 +391,3 @@ const createManyTasks = async (
       }),
     ),
   );
-
-const clearTasks = async (sandbox: TestSandbox, userId: string) =>
-  sandbox.dbConnection.getRepository(Task).delete({ user: { id: userId } });

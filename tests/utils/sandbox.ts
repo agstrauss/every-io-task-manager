@@ -1,3 +1,5 @@
+import { ApolloServer } from "apollo-server";
+import { Server } from "http";
 import { default as request } from "supertest";
 import { Connection } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
@@ -8,21 +10,69 @@ import { createDBConnection } from "../../src/db/connection";
 import { startServer } from "../../src/server";
 import { AsyncReturnType } from "../../src/utils/types";
 
-export type TestSandbox = AsyncReturnType<typeof createTestSandbox>;
+export type TestSandbox = AsyncReturnType<typeof getTestSandbox>;
+
+type AugmentedUser = User & { token: string; password: string };
 
 let dbConnection: Connection;
+let apolloServer: ApolloServer;
+let httpServer: Server;
+let sandbox: {
+  apolloServer: ApolloServer;
+  httpServer: Server;
+  dbConnection: Connection;
+  users: { regular: AugmentedUser; admin: AugmentedUser };
+  request: typeof graphQLRequest;
+  resetDB: () => Promise<void>;
+};
 
-export const createTestSandbox = async () => {
-  // TODO: Given the scope of this POC, we're resetting the db to run the tests
-  if (dbConnection) {
+const graphQLRequest = (
+  query: string,
+  {
+    variables,
+    token,
+  }: { variables?: Record<string, unknown>; token?: string } = {},
+) => {
+  const req = request(httpServer).post("/graphql").send({
+    query,
+    variables,
+  });
+  return token ? req.set("Authorization", `Bearer ${token}`) : req;
+};
+
+before(async function () {
+  this.timeout(10000);
+  dbConnection = await createDBConnection({ resetDB: true });
+  ({ apolloServer, httpServer } = await startServer(dbConnection, 4009));
+
+  const users = await createUsers();
+
+  const resetDB = async () => {
     await dbConnection.synchronize(true);
-  } else {
-    dbConnection = await createDBConnection({ resetDB: true, name: "test" });
+    sandbox.users = await createUsers();
+  };
+
+  sandbox = {
+    apolloServer,
+    httpServer,
+    dbConnection,
+    users,
+    resetDB,
+    request: graphQLRequest,
+  };
+});
+
+after(async () => {
+  if (apolloServer) {
+    await apolloServer.stop();
   }
+  if (dbConnection) {
+    await dbConnection.close();
+  }
+});
 
+const createUsers = async () => {
   const password = "password";
-
-  const { apolloServer, httpServer } = await startServer(dbConnection, 4009);
 
   const userRepository = dbConnection.getRepository(User);
   const { identifiers } = await userRepository.insert([
@@ -48,46 +98,18 @@ export const createTestSandbox = async () => {
     where: { id: identifiers[1].id },
   }))!;
 
-  const users = {
+  return {
     regular: {
       ...testUserRegular,
       password,
       token: getToken(testUserRegular.id, config.APP_SECRET),
-    },
+    } as AugmentedUser,
     admin: {
       ...testUserAdmin,
       password,
       token: getToken(testUserAdmin.id, config.APP_SECRET),
-    },
-  };
-
-  const exit = async () => {
-    console.log("Shutting down server...");
-    await apolloServer.stop();
-    await dbConnection.close();
-    console.log("done");
-  };
-
-  const graphQLRequest = (
-    query: string,
-    {
-      variables,
-      token,
-    }: { variables?: Record<string, unknown>; token?: string } = {},
-  ) => {
-    const req = request(httpServer).post("/graphql").send({
-      query,
-      variables,
-    });
-    return token ? req.set("Authorization", `Bearer ${token}`) : req;
-  };
-
-  return {
-    apolloServer,
-    httpServer,
-    dbConnection,
-    users,
-    exit,
-    request: graphQLRequest,
+    } as AugmentedUser,
   };
 };
+
+export const getTestSandbox = () => sandbox;

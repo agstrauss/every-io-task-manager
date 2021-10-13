@@ -1,17 +1,18 @@
 import MockDate from "mockdate";
 import { expect } from "chai";
 import { v4 as uuidv4 } from "uuid";
-import { createTestSandbox, TestSandbox } from "../utils/sandbox";
+import { getTestSandbox, TestSandbox } from "../utils/sandbox";
 
 describe("Auth GraphQL queries and mutations", () => {
   let sandbox: TestSandbox;
 
-  before(async () => {
-    sandbox = await createTestSandbox();
+  before(() => {
+    sandbox = getTestSandbox();
   });
 
-  after(async () => {
-    await sandbox.exit();
+  beforeEach(async function () {
+    this.timeout(5000);
+    await sandbox.resetDB();
   });
 
   afterEach(() => {
@@ -136,7 +137,10 @@ describe("Auth GraphQL queries and mutations", () => {
       );
 
       expect(result.statusCode).to.equal(200, JSON.stringify(result.body));
-      expect(result.body.errors).to.be.undefined;
+      expect(result.body.errors).to.equal(
+        undefined,
+        JSON.stringify(result.body.errors),
+      );
       expect(result.body.data).to.eql({
         userCreate: {
           username: newUsername,

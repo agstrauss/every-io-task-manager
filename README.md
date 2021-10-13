@@ -29,3 +29,7 @@ docker exec every-io-task-manager_server_1 npm run create-admin
 ```
 To manually run queries or mutations, just head to `localhost:4000/graphql` and use [Apollo Studio](https://www.apollographql.com/docs/studio/)
 
+### Running npm scripts manually
+
+Before running `npm run start` to quickly start the server, you must run `npm run graphql:generate` to generate the Typescript
+types for the `.graphql` files.

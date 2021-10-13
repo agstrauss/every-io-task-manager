@@ -18,7 +18,7 @@ createDBConnection()
     };
     await connection.getRepository(User).insert(data);
     console.log(
-      `Admin user created with username "${data.username}" and password "${password}"`,
+      `Admin user created with\nusername: ${data.username}\npassword: ${password}`,
     );
   })
   .then()
